@@ -1,0 +1,42 @@
+- name: Install golang
+  hosts: localhost
+  vars:
+    # https://wiki.archlinux.org/index.php/XDG_Base_Directory
+    DOWNLOAD: "{{ ansible_env.HOME }}/.cache/download"
+    FILE: "{{ ansible_env.HOME }}/.cache/download/golang.tar.gz"
+    DATA_HOME: "{{ ansible_env.HOME }}/.local"
+    PROFILE:  "{{ ansible_env.HOME }}/.profile"
+    GOROOT: "$HOME/.local/go"
+    GOPATH: "$HOME/go"
+  tasks:
+    # See: https://golang.org/doc/install
+    - name: Show download path
+      debug:
+        var: DOWNLOAD
+    - name: Create folders
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ DOWNLOAD }}"
+        - "{{ DATA_HOME }}"
+    - name: Download golang binary release
+      get_url:
+        url: https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz
+        dest: "{{ FILE }}"
+        checksum: "sha256:6272d6e940ecb71ea5636ddb5fab3933e087c1356173c61f4a803895e947ebb3"
+    - name: Extract golang binary release
+      # Will extract everytime ...
+      unarchive:
+        remote_src: yes
+        src: "{{ FILE }}"
+        dest: "{{ DATA_HOME }}"
+    - name: Set PATH for GOROOT and GOPATH/bin
+      lineinfile:
+        line: "PATH=\"$PATH:{{ item }}\" # Add by playbook"
+        path: "{{ PROFILE }}"
+        state: present
+      loop:
+        - "{{ GOROOT }}/bin"
+        - "{{ GOPATH }}/bin"
+

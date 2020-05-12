@@ -1,0 +1,37 @@
+- name: Install NodeJS
+  hosts: localhost
+  vars:
+    # https://wiki.archlinux.org/index.php/XDG_Base_Directory
+    DOWNLOAD: "{{ ansible_env.HOME }}/.cache/download"
+    FILE: "{{ ansible_env.HOME }}/.cache/download/nodejs.tar.xz"
+    INSTALL_PATH: "{{ ansible_env.HOME }}/.local/nodejs"
+    PROFILE:  "{{ ansible_env.HOME }}/.profile"
+    NODE_ROOT: "$HOME/.local/nodejs"
+  tasks:
+    # See: https://github.com/nodejs/help/wiki/Installation#how-to-install-nodejs-via-binary-archive-on-linux
+    - name: Create folders
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ DOWNLOAD }}"
+        - "{{ INSTALL_PATH }}"
+    - name: Download nodejs binary release
+      get_url:
+        url: https://nodejs.org/dist/v12.16.3/node-v12.16.3-linux-x64.tar.xz
+        dest: "{{ FILE }}"
+        checksum: "sha256:1956e196e3c3c8ef5f0c45db76d7c1245af4ccdda2b7ab30a57ce91d6e165caa"
+    - name: Extract nodejs binary release
+      # Will extract everytime ...
+      unarchive:
+        remote_src: yes
+        src: "{{ FILE }}"
+        dest: "{{ INSTALL_PATH }}"
+    - name: Set PATH for nodejs binary
+      lineinfile:
+        line: "PATH=\"$PATH:{{ item }}\" # Add by playbook"
+        path: "{{ PROFILE }}"
+        state: present
+      loop:
+        - "{{ NODE_ROOT }}/node-v12.16.3-linux-x64/bin"
+
