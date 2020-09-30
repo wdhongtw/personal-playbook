@@ -1,0 +1,25 @@
+- name: Install kubectl
+  hosts: localhost
+  vars:
+    # https://wiki.archlinux.org/index.php/XDG_Base_Directory
+    INSTALL_PATH: "{{ ansible_env.HOME }}/.local/bin"
+    VERSION: v1.18.2
+    DIGEST: sha256:6ea8261b503c6c63d616878837dc70b758d4a3aeb9996ade8e83b51aedac9698
+  tasks:
+    # See: https://kubernetes.io/docs/tasks/tools/install-kubectl/
+    - name: Create folders
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ INSTALL_PATH }}"
+    - name: Download kubectl binary release
+      get_url:
+        url: https://storage.googleapis.com/kubernetes-release/release/{{ VERSION }}/bin/linux/amd64/kubectl
+        dest: "{{ INSTALL_PATH }}/kubectl"
+        checksum: "{{ DIGEST }}"
+    - name: Add execution permission
+      file:
+        path: "{{ INSTALL_PATH }}/kubectl"
+        state: file
+        mode: +x
