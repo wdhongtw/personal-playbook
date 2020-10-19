@@ -1,0 +1,22 @@
+- name: Install docker-compose tool
+  hosts: localhost
+  vars:
+    EXECUTABLE_FOLDER: "{{ ansible_env.HOME }}/.local/bin"
+    TOOL_VERSION: "1.27.4"
+  tasks:
+    # See: https://docs.docker.com/compose/install/
+    - name: Create folders
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - "{{ EXECUTABLE_FOLDER }}"
+    - name: Download docker-compose binary release
+      get_url:
+        # See: https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html
+        url: https://github.com/docker/compose/releases/download/{{ TOOL_VERSION }}/docker-compose-{{ ansible_facts.system }}-{{ ansible_facts.architecture }}
+        dest: "{{ EXECUTABLE_FOLDER }}/docker-compose"
+    - name: Set executable permission
+      file:
+        path: "{{ EXECUTABLE_FOLDER }}/docker-compose"
+        mode: "0755"
